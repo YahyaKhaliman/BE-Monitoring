@@ -16,19 +16,19 @@ export function log(req, res, next) {
         console.log("Body   :", req.body);
     }
 
-    // const originalSend = res.send;
+    const originalSend = res.send;
 
-    // res.send = function (body) {
-    //     const duration = Date.now() - start;
+    res.send = function (body) {
+        const duration = Date.now() - start;
 
-    //     console.log("==================== RESPONSE ====================");
-    //     console.log("Status :", res.statusCode);
-    //     console.log("Time   :", `${duration} ms`);
-    //     console.log("Body   :", body);
-    //     console.log("=================================================\n");
+        console.log("==================== RESPONSE ====================");
+        console.log("Status :", res.statusCode);
+        console.log("Time   :", `${duration} ms`);
+        // console.log("Body   :", body);
+        console.log("=================================================\n");
 
-    //     return originalSend.call(this, body);
-    // };
+        return originalSend.call(this, body);
+    };
 
     next();
 }
