@@ -1,6 +1,23 @@
 const { Lini } = require("../models/spkTarget.model");
 const { MonjobSpk, Spk } = require("../models/spkTarget.model");
 
+// Cari SPK by nomor
+async function cariSpk(req, res) {
+    const { nomor } = req.query;
+    if (!nomor) {
+        return res.status(400).json({ ok: false, message: "Nomor SPK wajib diisi" });
+    }
+    try {
+        const spk = await Spk.findOne({ where: { spk_nomor: nomor }, raw: true });
+        if (!spk) {
+            return res.status(404).json({ ok: false, message: "SPK tidak ditemukan" });
+        }
+        return res.json({ ok: true, data: spk });
+    } catch (e) {
+        return res.status(500).json({ ok: false, message: e.message });
+    }
+}
+
 // Get lini
 async function getLini(req, res) {
     try {
@@ -28,16 +45,16 @@ async function getLini(req, res) {
 
 // Get list
 async function list(req, res) {
-    const { cab, lini } = req.query;
-    if (!cab || !lini) {
+    const { lini } = req.query;
+    if (!lini) {
         return res
         .status(400)
-        .json({ ok: false, message: "cab dan lini wajib diisi" });
+        .json({ ok: false, message: "lini wajib diisi" });
     }
 
     try {
         const rows = await MonjobSpk.findAll({
-        where: { ms_cab: cab, ms_lini: lini },
+        where: { ms_lini: lini },
         include: [
             {
             model: Spk,
@@ -163,4 +180,4 @@ async function remove(req, res) {
     }
 }
 
-module.exports = { getLini, list, create, update, remove };
+module.exports = { getLini, list, create, update, remove, cariSpk };

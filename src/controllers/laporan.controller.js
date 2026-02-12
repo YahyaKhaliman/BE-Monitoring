@@ -72,23 +72,25 @@ async function laporan(req, res) {
             s.spk_nama,
             s.spk_jumlah AS jml_order,
             IFNULL((
-                SELECT SUM(s.spk_jumlah_jadi)
-                FROM tspk s
-                WHERE s.spk_nomor = r.mr_spk_nomor
+                SELECT SUM(a.mr_realisasi)
+                FROM monjob_realisasi a
+                WHERE a.mr_spk_nomor = r.mr_spk_nomor
+                AND a.mr_tanggal BETWEEN '2025-01-01' AND :date_to
                 ${cabFilter}
             ),0) AS total_realisasi,
             (IFNULL((
-                SELECT SUM(s.spk_jumlah_jadi)
-                FROM tspk s
-                WHERE s.spk_nomor = r.mr_spk_nomor
-                    ${cabFilter}
-                ), 0)
+                SELECT SUM(a.mr_realisasi)
+                FROM monjob_realisasi a
+                WHERE a.mr_spk_nomor = r.mr_spk_nomor
+                AND a.mr_tanggal BETWEEN '2025-01-01' AND :date_to
+                ${cabFilter}
+            ), 0)
                 - s.spk_jumlah
             ) AS sisa,
             IFNULL(SUM(r.mr_target),0) AS target,
             IFNULL(SUM(r.mr_realisasi),0) AS realisasi,
             IFNULL(
-                ROUND(SUM(r.mr_realisasi) / NULLIF(SUM(r.mr_target),0) * 100, 2),
+                ROUND(SUM(r.mr_realisasi) / NULLIF(SUM(s.spk_jumlah),0) * 100, 2),
                 0
             ) AS persen,
             s.spk_close

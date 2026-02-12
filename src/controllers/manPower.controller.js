@@ -4,34 +4,33 @@ const { QueryTypes } = require("sequelize");
 
 // Get list
 async function list(req, res) {
-    const { cab, lini, tanggal, kelompok } = req.query;
+    const { lini, tanggal, kelompok } = req.query;
 
-    if (!cab || !lini || !tanggal) {
+    if (!lini || !tanggal) {
         return res.status(400).json({
-        ok: false,
-        message: "cab, lini, tanggal wajib diisi",
+            ok: false,
+            message: "lini dan tanggal wajib diisi",
         });
     }
 
     try {
         let sql =
-        `SELECT DATE_FORMAT(mm_tanggal,'%d-%m-%Y') tanggal,
-                mm_kelompok kelompok,
-                mm_mp mp
-        FROM monjob_manpower
-        WHERE mm_cab = :cab
-            AND mm_lini = :lini
-            AND mm_tanggal = :tanggal`;
+            `SELECT DATE_FORMAT(mm_tanggal,'%d-%m-%Y') tanggal,
+                    mm_kelompok kelompok,
+                    mm_mp mp
+            FROM monjob_manpower
+            WHERE mm_lini = :lini
+                AND mm_tanggal = :tanggal`;
 
         if (kelompok) {
-        sql += " AND mm_kelompok = :kelompok";
+            sql += " AND mm_kelompok = :kelompok";
         }
 
         sql += " ORDER BY mm_kelompok";
 
         const data = await sequelize.query(sql, {
-        replacements: { cab, lini, tanggal, kelompok },
-        type: QueryTypes.SELECT,
+            replacements: { lini, tanggal, kelompok },
+            type: QueryTypes.SELECT,
         });
 
         res.json({ ok: true, data });

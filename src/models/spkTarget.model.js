@@ -26,15 +26,15 @@ const Spk = sequelize.define(
 const MonjobSpk = sequelize.define(
     "MonjobSpk",
     {
-        ms_nomor: { type: DataTypes.STRING(20), allowNull: false },
-        ms_cab: { type: DataTypes.STRING(3), allowNull: false },
-        ms_lini: { type: DataTypes.STRING(20), allowNull: false },
+        ms_nomor: { type: DataTypes.STRING(20), allowNull: false, primaryKey: true },
+        ms_cab: { type: DataTypes.STRING(3), allowNull: false, primaryKey: true },
+        ms_lini: { type: DataTypes.STRING(20), allowNull: false, primaryKey: true },
         ms_targetperjam: { type: DataTypes.DOUBLE, allowNull: false, default: 0 },
         user_create: { type: DataTypes.STRING(10), allowNull: false },
         date_create: { type: DataTypes.DATE, allowNull: true, default: null },
         date_modified: { type: DataTypes.DATE, allowNull: true, default: null },
     },
-    { tableName: "monjob_spk", timestamps: false }
+    { tableName: "monjob_spk", timestamps: false, freezeTableName: true, id: false }
 );
 
 MonjobSpk.belongsTo(Spk, {
