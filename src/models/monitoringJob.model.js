@@ -1,27 +1,13 @@
 const sequelize = require("../config/db");
 const { QueryTypes } = require("sequelize");
 
-async function getLiniByCab({ cab }) {
+async function getLiniByCab({ cab, lini = "JAHIT" }) {
     const sql = `
         SELECT DISTINCT lini
         FROM tkelompok
         WHERE cab = :cab
+            AND (:lini IS NULL OR :lini = '' OR lini = :lini)
         ORDER BY lini
-    `;
-
-    return sequelize.query(sql, {
-        replacements: { cab },
-        type: QueryTypes.SELECT,
-    });
-}
-
-async function getKelompokByCabLini({ cab, lini }) {
-    const sql = `
-        SELECT DISTINCT kelompok
-        FROM tkelompok
-        WHERE cab = :cab
-            AND lini = :lini
-        ORDER BY kelompok
     `;
 
     return sequelize.query(sql, {
@@ -30,11 +16,38 @@ async function getKelompokByCabLini({ cab, lini }) {
     });
 }
 
+async function getKelompokByCabLini({ cab, lini, kelompok = null }) {
+    const sql = `
+        SELECT DISTINCT kelompok
+        FROM tkelompok
+        WHERE cab = :cab
+            AND lini = :lini
+            AND (
+                :kelompok IS NULL
+                OR :kelompok = ''
+                OR kelompok = :kelompok
+                OR NOT EXISTS (
+                    SELECT 1
+                    FROM tkelompok t2
+                    WHERE t2.cab = :cab
+                        AND t2.lini = :lini
+                        AND t2.kelompok = :kelompok
+                )
+            )
+        ORDER BY kelompok
+    `;
+
+    return sequelize.query(sql, {
+        replacements: { cab, lini, kelompok },
+        type: QueryTypes.SELECT,
+    });
+}
+
 async function getMonitoringPerJam({ cab, tanggal, lini, kelompok }) {
     const sql = `
         SELECT j.mj_jam jam,
             IFNULL(r.mr_mp,0) mp,
-            CONCAT(IFNULL(r.mr_spk_nomor,''),'\\n',IFNULL(s.spk_nama,'')) spk,
+            CONCAT(IFNULL(r.mr_spk_nomor,''),'\\r\\n',IFNULL(s.spk_nama,'')) spk,
             IFNULL(r.mr_target,0) target,
             IFNULL(r.mr_realisasi,0) realisasi,
             IFNULL(ROUND(r.mr_realisasi / NULLIF(r.mr_target,0) * 100, 2),0) persen
@@ -56,7 +69,7 @@ async function getMonitoringPerJam({ cab, tanggal, lini, kelompok }) {
 }
 
 async function getMonitoringDetail({ cab, tanggal, lini, kelompok }) {
-        const sql = `
+    const sql = `
             SELECT r.mr_spk_nomor spk,
                         s.spk_jumlah jmlspk,
                         SUM(r.mr_realisasi) jml,

@@ -1,7 +1,7 @@
 const monitoringJobModel = require("../models/monitoringJob.model");
 
 async function getLini(req, res) {
-    const { cab } = req.query;
+    const { cab, lini } = req.query;
 
     if (!cab) {
         return res.status(400).json({
@@ -11,7 +11,10 @@ async function getLini(req, res) {
     }
 
     try {
-        const data = await monitoringJobModel.getLiniByCab({ cab });
+        const data = await monitoringJobModel.getLiniByCab({
+            cab,
+            lini: lini || "JAHIT",
+        });
         res.json({ ok: true, data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
@@ -19,7 +22,7 @@ async function getLini(req, res) {
 }
 
 async function getKelompok(req, res) {
-    const { cab, lini } = req.query;
+    const { cab, lini, kelompok } = req.query;
 
     if (!cab || !lini) {
         return res.status(400).json({
@@ -29,7 +32,11 @@ async function getKelompok(req, res) {
     }
 
     try {
-        const data = await monitoringJobModel.getKelompokByCabLini({ cab, lini });
+        const data = await monitoringJobModel.getKelompokByCabLini({
+            cab,
+            lini,
+            kelompok,
+        });
         res.json({ ok: true, data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
@@ -41,8 +48,8 @@ async function monitoringPerJam(req, res) {
 
     if (!cab || !tanggal || !lini || !kelompok) {
         return res.status(400).json({
-        ok: false,
-        message: "cab, tanggal, lini, kelompok wajib diisi",
+            ok: false,
+            message: "cab, tanggal, lini, kelompok wajib diisi",
         });
     }
 
@@ -57,7 +64,7 @@ async function monitoringPerJam(req, res) {
         // hitung nilai rata-rata
         let total = 0;
         let count = 0;
-        rows.forEach(r => {
+        rows.forEach((r) => {
             if (Number(r.persen) > 0) {
                 total += Number(r.persen);
                 count++;

@@ -1,5 +1,13 @@
-const sequelize = require("../config/db");
-const { QueryTypes } = require("sequelize");
+const Realisasi = require("../models/realisasi.model");
+
+async function jamOptions(req, res) {
+    try {
+        const data = await Realisasi.getJamOptions();
+        res.json({ ok: true, data });
+    } catch (e) {
+        res.status(500).json({ ok: false, message: e.message });
+    }
+}
 
 // LIST REALISASI
 async function list(req, res) {
@@ -7,35 +15,34 @@ async function list(req, res) {
 
     if (!cab || !tanggal) {
         return res.status(400).json({
-        ok: false,
-        message: "cab dan tanggal wajib diisi",
+            ok: false,
+            message: "cab dan tanggal wajib diisi",
         });
     }
 
     try {
-        let sql = `
-        SELECT DATE_FORMAT(mr_tanggal,'%Y-%m-%d') tanggal,
-                mr_lini lini,
-                mr_kelompok kelompok,
-                mr_jam jam,
-                mr_spk_nomor spk,
-                spk_nama,
-                mr_realisasi,
-                mr_target
-        FROM monjob_realisasi
-        INNER JOIN tspk ON spk_nomor = mr_spk_nomor
-        WHERE mr_cab = :cab
-            AND mr_tanggal = :tanggal
-        `;
+        let validLini = null;
+        let validKelompok = null;
 
-        if (lini) sql += " AND mr_lini = :lini";
-        if (kelompok) sql += " AND mr_kelompok = :kelompok";
+        if (lini) {
+            const okLini = await Realisasi.isValidLini({ cab, lini });
+            if (okLini) validLini = lini;
+        }
 
-        sql += " ORDER BY mr_lini, mr_kelompok, mr_jam";
+        if (kelompok && validLini) {
+            const okKelompok = await Realisasi.isValidKelompok({
+                cab,
+                lini: validLini,
+                kelompok,
+            });
+            if (okKelompok) validKelompok = kelompok;
+        }
 
-        const data = await sequelize.query(sql, {
-        replacements: { cab, tanggal, lini, kelompok },
-        type: QueryTypes.SELECT,
+        const data = await Realisasi.listRealisasi({
+            cab,
+            tanggal,
+            lini: validLini,
+            kelompok: validKelompok,
         });
 
         res.json({ ok: true, data });
@@ -57,36 +64,55 @@ async function upsert(req, res) {
         target,
         mp,
         user,
+        edit_mode,
     } = req.body;
 
     if (!lini || !kelompok || !jam || !spk) {
         return res.status(400).json({
-        ok: false,
-        message: "Lini, Kelompok, Jam, dan SPK wajib diisi",
+            ok: false,
+            message: "Lini, Kelompok, Jam, dan SPK wajib diisi",
         });
     }
 
     if (Number(mp) <= 0) {
         return res.status(400).json({
-        ok: false,
-        message: "Man Power belum diinput",
+            ok: false,
+            message: "Man Power belum diinput",
         });
     }
 
     try {
-        const sql = `
-        INSERT INTO monjob_realisasi
-        (mr_tanggal, mr_cab, mr_lini, mr_kelompok, mr_jam,
-        mr_spk_nomor, mr_realisasi, mr_target, mr_mp, user_create, date_create)
-        VALUES
-        (:tanggal, :cab, :lini, :kelompok, :jam,
-        :spk, :realisasi, :target, :mp, :user, NOW())
-        ON DUPLICATE KEY UPDATE
-            mr_realisasi = :realisasi
-        `;
+        const mpDb = await Realisasi.getManPower({
+            tanggal,
+            cab,
+            lini,
+            kelompok,
+        });
+        if (Number(mpDb) <= 0) {
+            return res.status(400).json({
+                ok: false,
+                message: "Man Power di Tgl tsb belum di input oleh Admin.",
+            });
+        }
 
-        await sequelize.query(sql, {
-        replacements: {
+        const isEdit = Boolean(edit_mode);
+        if (!isEdit) {
+            const exists = await Realisasi.existsJamSetting({
+                tanggal,
+                cab,
+                lini,
+                kelompok,
+                jam,
+            });
+            if (exists) {
+                return res.status(400).json({
+                    ok: false,
+                    message: "jam ini sudah di seting",
+                });
+            }
+        }
+
+        await Realisasi.upsertRealisasi({
             tanggal,
             cab,
             lini,
@@ -97,8 +123,6 @@ async function upsert(req, res) {
             target,
             mp,
             user,
-        },
-        type: QueryTypes.INSERT,
         });
 
         res.json({ ok: true, message: "Realisasi tersimpan" });
@@ -112,19 +136,13 @@ async function remove(req, res) {
     const { tanggal, cab, lini, kelompok, jam, spk } = req.query;
 
     try {
-        const sql = `
-        DELETE FROM monjob_realisasi
-        WHERE mr_tanggal = :tanggal
-            AND mr_cab = :cab
-            AND mr_lini = :lini
-            AND mr_kelompok = :kelompok
-            AND mr_jam = :jam
-            AND mr_spk_nomor = :spk
-        `;
-
-        await sequelize.query(sql, {
-        replacements: { tanggal, cab, lini, kelompok, jam, spk },
-        type: QueryTypes.DELETE,
+        await Realisasi.deleteRealisasi({
+            tanggal,
+            cab,
+            lini,
+            kelompok,
+            jam,
+            spk,
         });
 
         res.json({ ok: true, message: "Data dihapus" });
@@ -133,4 +151,4 @@ async function remove(req, res) {
     }
 }
 
-module.exports = { list, upsert, remove };
+module.exports = { jamOptions, list, upsert, remove };
