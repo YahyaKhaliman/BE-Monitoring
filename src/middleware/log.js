@@ -1,4 +1,4 @@
-export function log(req, res, next) {
+function log(req, res, next) {
     const start = Date.now();
 
     console.log("\n==================== REQUEST ====================");
@@ -32,3 +32,5 @@ export function log(req, res, next) {
 
     next();
 }
+
+module.exports = { log };
