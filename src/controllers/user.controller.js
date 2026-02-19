@@ -1,7 +1,29 @@
 const User = require("../models/user.model");
+const jwt = require("jsonwebtoken");
+
+function signAccessToken(user) {
+    const payload = {
+        user_kode: user.user_kode,
+        user_nama: user.user_nama,
+        user_cab: user.user_cab,
+        user_bagian: user.user_bagian,
+        user_kelompok: user.user_kelompok,
+    };
+
+    return jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN || "8h",
+    });
+}
 
 async function login(req, res) {
     const { user_kode, password } = req.body;
+
+    if (!process.env.JWT_SECRET) {
+        return res.status(500).json({
+            ok: false,
+            message: "JWT_SECRET belum diset di environment",
+        });
+    }
 
     if (!user_kode || !password) {
         return res.status(400).json({
@@ -26,6 +48,7 @@ async function login(req, res) {
 
     return res.json({
         ok: true,
+        token: signAccessToken(user),
         data: {
             user_kode: user.user_kode,
             user_nama: user.user_nama,
@@ -37,12 +60,20 @@ async function login(req, res) {
 }
 
 async function changePassword(req, res) {
-    const { user_kode, old_password, new_password } = req.body;
+    const { old_password, new_password } = req.body;
+    const user_kode = req.user?.user_kode;
 
-    if (!user_kode || !old_password || !new_password) {
+    if (!user_kode) {
+        return res.status(401).json({
+            ok: false,
+            message: "Unauthorized",
+        });
+    }
+
+    if (!old_password || !new_password) {
         return res.status(400).json({
         ok: false,
-        message: "user_kode, old_password, new_password wajib diisi",
+        message: "old_password, new_password wajib diisi",
         });
     }
 

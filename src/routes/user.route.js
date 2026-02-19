@@ -1,8 +1,10 @@
 const express = require("express");
 const router = require("express").Router();
 const { login, changePassword } = require("../controllers/user.controller");
+const { authenticateToken } = require("../middleware/auth");
 
 router.post("/admin/login", login);
-router.put("/admin/change-password", changePassword)
+router.use(authenticateToken);
+router.put("/admin/change-password", changePassword);
 
 module.exports = router;

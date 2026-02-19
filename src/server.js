@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const sequelize = require("./config/db");
 const { log } = require("./middleware/log");
+const { authenticateToken } = require("./middleware/auth");
 
 const userRoutes = require("./routes/user.route");
 const spkRoutes = require("./routes/spkTarget.route");
@@ -19,6 +20,7 @@ app.use(log); // DEBUG
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 app.use("/api", userRoutes);
+app.use("/api", authenticateToken);
 app.use("/api", spkRoutes);
 app.use("/api", realisasiRoutes);
 app.use("/api", manPowerRoutes);
