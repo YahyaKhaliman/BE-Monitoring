@@ -13,9 +13,31 @@ const monitoringJobRoutes = require("./routes/monitoringJob.route");
 const laporanRoutes = require("./routes/laporan.route");
 
 const app = express();
-app.use(cors());
+const corsOrigins = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const corsOptions = {
+    origin(origin, callback) {
+        // allow non-browser clients (postman, curl)
+        if (!origin) return callback(null, true);
+
+        if (corsOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Not allowed by CORS"));
+    },
+};
+
+const isHttpLogEnabled = (process.env.ENABLE_HTTP_LOG || "true").toLowerCase() === "true";
+
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(log); // DEBUG
+if (isHttpLogEnabled) {
+    app.use(log);
+}
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 

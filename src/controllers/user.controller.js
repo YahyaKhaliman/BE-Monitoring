@@ -27,22 +27,22 @@ async function login(req, res) {
 
     if (!user_kode || !password) {
         return res.status(400).json({
-        ok: false,
-        message: "user_kode dan password wajib diisi",
+            ok: false,
+            message: "user_kode dan password wajib diisi",
         });
     }
 
     const user = await User.findOne({
         where: {
-        user_kode: user_kode,
-        user_password: password,
+            user_kode: user_kode,
+            user_password: password,
         },
     });
 
     if (!user) {
         return res.status(401).json({
-        ok: false,
-        message: "Kode User atau Password salah",
+            ok: false,
+            message: "Kode User atau Password salah",
         });
     }
 
@@ -60,57 +60,49 @@ async function login(req, res) {
 }
 
 async function changePassword(req, res) {
-    const { old_password, new_password } = req.body;
-    const user_kode = req.user?.user_kode;
+    const { user_kode, old_password, new_password } = req.body;
 
-    if (!user_kode) {
-        return res.status(401).json({
-            ok: false,
-            message: "Unauthorized",
-        });
-    }
-
-    if (!old_password || !new_password) {
+    if (!user_kode || !old_password || !new_password) {
         return res.status(400).json({
-        ok: false,
-        message: "old_password, new_password wajib diisi",
+            ok: false,
+            message: "user_kode, old_password, new_password wajib diisi",
         });
     }
 
     try {
         const user = await User.findOne({
-        where: { user_kode },
+            where: { user_kode },
         });
 
         if (!user) {
-        return res.status(404).json({
-            ok: false,
-            message: "User tidak ditemukan / tidak aktif",
-        });
+            return res.status(404).json({
+                ok: false,
+                message: "User tidak ditemukan / tidak aktif",
+            });
         }
 
         if (user.user_password !== old_password) {
-        return res.status(401).json({
-            ok: false,
-            message: "password lama anda salah",
-        });
+            return res.status(400).json({
+                ok: false,
+                message: "password lama anda salah",
+            });
         }
 
         const [affected] = await User.update(
-        { user_password: new_password },
-        { where: { user_kode } }
+            { user_password: new_password },
+            { where: { user_kode } },
         );
 
         if (!affected) {
-        return res.status(500).json({
-            ok: false,
-            message: "Gagal mengubah password",
-        });
+            return res.status(500).json({
+                ok: false,
+                message: "Password baru tidak boleh sama dengan password lama",
+            });
         }
 
         return res.json({
-        ok: true,
-        message: "Password Berhasil di ubah",
+            ok: true,
+            message: "Password Berhasil di ubah",
         });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
