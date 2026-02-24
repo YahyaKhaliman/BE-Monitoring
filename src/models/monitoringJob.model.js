@@ -44,6 +44,30 @@ async function getKelompokByCabLini({ cab, lini, kelompok = null }) {
 }
 
 async function getMonitoringPerJam({ cab, tanggal, lini, kelompok }) {
+    if (String(kelompok).toUpperCase() === "ALL") {
+        const sqlAll = `
+            SELECT j.mj_jam jam,
+                IFNULL(SUM(r.mr_mp),0) mp,
+                IFNULL(GROUP_CONCAT(DISTINCT r.mr_spk_nomor ORDER BY r.mr_spk_nomor SEPARATOR ', '),'') spk,
+                IFNULL(SUM(r.mr_target),0) target,
+                IFNULL(SUM(r.mr_realisasi),0) realisasi,
+                IFNULL(ROUND(SUM(r.mr_realisasi) / NULLIF(SUM(r.mr_target),0) * 100, 2),0) persen
+            FROM monjob_jam j
+            LEFT JOIN monjob_realisasi r
+                ON r.mr_jam = j.mj_jam
+                AND r.mr_tanggal = :tanggal
+                AND r.mr_cab = :cab
+                AND r.mr_lini = :lini
+            GROUP BY j.mj_id, j.mj_jam
+            ORDER BY j.mj_id
+        `;
+
+        return sequelize.query(sqlAll, {
+            replacements: { cab, tanggal, lini },
+            type: QueryTypes.SELECT,
+        });
+    }
+
     const sql = `
         SELECT j.mj_jam jam,
             IFNULL(r.mr_mp,0) mp,
@@ -66,6 +90,30 @@ async function getMonitoringPerJam({ cab, tanggal, lini, kelompok }) {
         replacements: { cab, tanggal, lini, kelompok },
         type: QueryTypes.SELECT,
     });
+}
+
+async function getMonitoringAvgPersen({ cab, tanggal, lini, kelompok }) {
+    const isAllKelompok = String(kelompok).toUpperCase() === "ALL";
+    const sql = `
+        SELECT IFNULL(
+            ROUND(SUM(r.mr_realisasi) / NULLIF(SUM(r.mr_target),0) * 100, 2),
+            0
+        ) AS persen
+        FROM monjob_realisasi r
+        WHERE r.mr_tanggal = :tanggal
+            AND r.mr_cab = :cab
+            AND r.mr_lini = :lini
+            ${isAllKelompok ? "" : "AND r.mr_kelompok = :kelompok"}
+    `;
+
+    const [row] = await sequelize.query(sql, {
+        replacements: isAllKelompok
+            ? { cab, tanggal, lini }
+            : { cab, tanggal, lini, kelompok },
+        type: QueryTypes.SELECT,
+    });
+
+    return Number(row?.persen || 0);
 }
 
 async function getMonitoringDetail({ cab, tanggal, lini, kelompok }) {
@@ -101,5 +149,6 @@ module.exports = {
     getLiniByCab,
     getKelompokByCabLini,
     getMonitoringPerJam,
+    getMonitoringAvgPersen,
     getMonitoringDetail,
 };

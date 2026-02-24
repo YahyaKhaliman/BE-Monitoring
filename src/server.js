@@ -30,10 +30,11 @@ const corsOptions = {
         return callback(new Error("Not allowed by CORS"));
     },
 };
-
-const isHttpLogEnabled = (process.env.ENABLE_HTTP_LOG || "true").toLowerCase() === "true";
-
 app.use(cors(corsOptions));
+
+const isHttpLogEnabled =
+    (process.env.ENABLE_HTTP_LOG || "true").toLowerCase() === "true";
+
 app.use(express.json());
 if (isHttpLogEnabled) {
     app.use(log);

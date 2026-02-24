@@ -60,22 +60,16 @@ async function monitoringPerJam(req, res) {
             lini,
             kelompok,
         });
-
-        // hitung nilai rata-rata
-        let total = 0;
-        let count = 0;
-        rows.forEach((r) => {
-            if (Number(r.persen) > 0) {
-                total += Number(r.persen);
-                count++;
-            }
+        const persen = await monitoringJobModel.getMonitoringAvgPersen({
+            cab,
+            tanggal,
+            lini,
+            kelompok,
         });
-
-        const avg = count === 0 ? 0 : Number((total / count).toFixed(2));
 
         res.json({
             ok: true,
-            avg_persen: avg,
+            persen: persen,
             data: rows,
         });
     } catch (e) {
