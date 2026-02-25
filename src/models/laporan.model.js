@@ -1,7 +1,10 @@
 const sequelize = require("../config/db");
 const { QueryTypes } = require("sequelize");
 
-function buildWhereAndReplacements({ cab, date_from, date_to, lini, kelompok, spk }) {
+function buildWhereAndReplacements(
+    { cab, date_from, date_to, lini, kelompok, spk },
+    { includeKelompok = true } = {},
+) {
     let where = `
         WHERE r.mr_tanggal BETWEEN :date_from AND :date_to
     `;
@@ -17,7 +20,7 @@ function buildWhereAndReplacements({ cab, date_from, date_to, lini, kelompok, sp
         repl.lini = lini;
     }
 
-    if (kelompok) {
+    if (includeKelompok && kelompok) {
         where += " AND r.mr_kelompok = :kelompok";
         repl.kelompok = kelompok;
     }
@@ -39,6 +42,18 @@ async function getLaporanData({ cab, date_from, date_to, lini, kelompok, spk }) 
         kelompok,
         spk,
     });
+
+    const { where: wherePerLine, repl: replPerLine } = buildWhereAndReplacements(
+        {
+            cab,
+            date_from,
+            date_to,
+            lini,
+            kelompok,
+            spk,
+        },
+        { includeKelompok: false },
+    );
 
     const summarySql = `
         SELECT
@@ -77,7 +92,7 @@ async function getLaporanData({ cab, date_from, date_to, lini, kelompok, spk }) 
                 0
             ) persen
         FROM monjob_realisasi r
-        ${where}
+        ${wherePerLine}
         GROUP BY r.mr_kelompok
         ORDER BY r.mr_kelompok
     `;
@@ -143,7 +158,7 @@ async function getLaporanData({ cab, date_from, date_to, lini, kelompok, spk }) 
     });
 
     const by_per_line = await sequelize.query(byPerLineSql, {
-        replacements: repl,
+        replacements: replPerLine,
         type: QueryTypes.SELECT,
     });
 

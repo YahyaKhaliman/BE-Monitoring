@@ -20,7 +20,6 @@ const corsOrigins = (process.env.CORS_ORIGINS || "")
 
 const corsOptions = {
     origin(origin, callback) {
-        // allow non-browser clients (postman, curl)
         if (!origin) return callback(null, true);
 
         if (corsOrigins.includes(origin)) {
@@ -32,8 +31,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const isHttpLogEnabled =
-    (process.env.ENABLE_HTTP_LOG || "true").toLowerCase() === "true";
+const isHttpLogEnabled = process.env.ENABLE_HTTP_LOG;
 
 app.use(express.json());
 if (isHttpLogEnabled) {

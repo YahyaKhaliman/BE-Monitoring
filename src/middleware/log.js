@@ -29,7 +29,7 @@ function maskSensitive(value) {
 
 function log(req, res, next) {
     const start = Date.now();
-    const logBodyEnabled = (process.env.LOG_BODY || "true").toLowerCase() === "true";
+    const logBodyEnabled = process.env.LOG_BODY;
     const maskedHeaders = maskSensitive(req.headers || {});
 
     console.log("\n==================== REQUEST ====================");
