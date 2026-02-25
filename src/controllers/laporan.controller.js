@@ -11,7 +11,7 @@ async function laporan(req, res) {
     }
 
     try {
-        const { summary, by_date, by_spk } = await laporanModel.getLaporanData({
+        const { summary, by_date, by_per_line, by_spk } = await laporanModel.getLaporanData({
             cab,
             date_from,
             date_to,
@@ -24,6 +24,7 @@ async function laporan(req, res) {
             ok: true,
             summary,
             by_date,
+            by_per_line,
             by_spk,
         });
     } catch (e) {

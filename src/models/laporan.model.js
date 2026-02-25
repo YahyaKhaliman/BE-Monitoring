@@ -67,6 +67,21 @@ async function getLaporanData({ cab, date_from, date_to, lini, kelompok, spk }) 
         ORDER BY r.mr_tanggal
     `;
 
+    const byPerLineSql = `
+        SELECT
+            r.mr_kelompok line,
+            IFNULL(SUM(r.mr_target),0) target,
+            IFNULL(SUM(r.mr_realisasi),0) realisasi,
+            IFNULL(
+                ROUND(SUM(r.mr_realisasi) / NULLIF(SUM(r.mr_target),0) * 100, 2),
+                0
+            ) persen
+        FROM monjob_realisasi r
+        ${where}
+        GROUP BY r.mr_kelompok
+        ORDER BY r.mr_kelompok
+    `;
+
     const cabFilter = cab ? " AND a.mr_cab = :cab" : "";
 
     const bySpkSql = `
@@ -127,6 +142,11 @@ async function getLaporanData({ cab, date_from, date_to, lini, kelompok, spk }) 
         type: QueryTypes.SELECT,
     });
 
+    const by_per_line = await sequelize.query(byPerLineSql, {
+        replacements: repl,
+        type: QueryTypes.SELECT,
+    });
+
     return {
         summary: summaryRow || {
             total_target: 0,
@@ -134,6 +154,7 @@ async function getLaporanData({ cab, date_from, date_to, lini, kelompok, spk }) 
             persen: 0,
         },
         by_date,
+        by_per_line,
         by_spk,
     };
 }
