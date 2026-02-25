@@ -29,7 +29,8 @@ function maskSensitive(value) {
 
 function log(req, res, next) {
     const start = Date.now();
-    const logBodyEnabled = process.env.LOG_BODY;
+    const logBodyEnabled =
+        String(process.env.LOG_BODY).toLowerCase() === "true";
     const maskedHeaders = maskSensitive(req.headers || {});
 
     console.log("\n==================== REQUEST ====================");
@@ -45,7 +46,7 @@ function log(req, res, next) {
     }
 
     if (Object.keys(req.query).length) {
-        console.log("Query  :", req.query);
+        console.log("Query  :", maskSensitive(req.query));
     }
 
     if (logBodyEnabled && req.body && Object.keys(req.body).length) {

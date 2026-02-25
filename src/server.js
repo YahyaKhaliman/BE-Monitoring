@@ -13,6 +13,37 @@ const monitoringJobRoutes = require("./routes/monitoringJob.route");
 const laporanRoutes = require("./routes/laporan.route");
 
 const app = express();
+
+function createRateLimiter({
+    windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
+    max = Number(process.env.RATE_LIMIT_MAX || 120),
+} = {}) {
+    const buckets = new Map();
+
+    return function rateLimiter(req, res, next) {
+        const ip = req.ip || req.socket?.remoteAddress || "unknown";
+        const now = Date.now();
+
+        let entry = buckets.get(ip);
+        if (!entry || now >= entry.resetAt) {
+            entry = { count: 0, resetAt: now + windowMs };
+        }
+
+        entry.count += 1;
+        buckets.set(ip, entry);
+
+        if (entry.count > max) {
+            res.setHeader("Retry-After", Math.ceil((entry.resetAt - now) / 1000));
+            return res.status(429).json({
+                ok: false,
+                message: "Terlalu banyak request. Coba lagi nanti.",
+            });
+        }
+
+        next();
+    };
+}
+
 const corsOrigins = (process.env.CORS_ORIGINS || "")
     .split(",")
     .map((origin) => origin.trim())
@@ -20,6 +51,7 @@ const corsOrigins = (process.env.CORS_ORIGINS || "")
 
 const corsOptions = {
     origin(origin, callback) {
+        // Allow requests with no origin (postman, curl, etc.)
         if (!origin) return callback(null, true);
 
         if (corsOrigins.includes(origin)) {
@@ -31,12 +63,15 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const isHttpLogEnabled = process.env.ENABLE_HTTP_LOG;
+const isHttpLogEnabled =
+    String(process.env.ENABLE_HTTP_LOG).toLowerCase() === "true";
 
-app.use(express.json());
+app.disable("x-powered-by");
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "200kb" }));
 if (isHttpLogEnabled) {
     app.use(log);
 }
+app.use("/api", createRateLimiter());
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
