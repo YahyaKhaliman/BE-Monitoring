@@ -33,7 +33,10 @@ function createRateLimiter({
         buckets.set(ip, entry);
 
         if (entry.count > max) {
-            res.setHeader("Retry-After", Math.ceil((entry.resetAt - now) / 1000));
+            res.setHeader(
+                "Retry-After",
+                Math.ceil((entry.resetAt - now) / 1000),
+            );
             return res.status(429).json({
                 ok: false,
                 message: "Terlalu banyak request. Coba lagi nanti.",
