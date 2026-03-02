@@ -15,8 +15,8 @@ const laporanRoutes = require("./routes/laporan.route");
 const app = express();
 
 function createRateLimiter({
-    windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 60000),
-    max = Number(process.env.RATE_LIMIT_MAX || 120),
+    windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS),
+    max = Number(process.env.RATE_LIMIT_MAX),
 } = {}) {
     const buckets = new Map();
 
