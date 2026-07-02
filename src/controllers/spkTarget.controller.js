@@ -19,7 +19,7 @@ async function cariSpk(req, res) {
                 .status(404)
                 .json({ ok: false, message: "SPK tidak ditemukan" });
         }
-        return res.json({ ok: true, data: spk });
+        return res.json({ ok: true, message: "SPK ditemukan", data: spk });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
     }
@@ -44,7 +44,7 @@ async function getLini(req, res) {
             raw: true,
         });
 
-        return res.json({ ok: true, data });
+        return res.json({ ok: true, message: "Data lini berhasil dimuat", data });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
     }
@@ -83,7 +83,7 @@ async function list(req, res) {
             tanggal: r.get("date_create"),
         }));
 
-        return res.json({ ok: true, data });
+        return res.json({ ok: true, message: "Data target SPK berhasil dimuat", data });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
     }
@@ -122,7 +122,7 @@ async function create(req, res) {
             date_create: new Date(),
         });
 
-        return res.json({ ok: true, message: "Berhasil disimpan" });
+        return res.json({ ok: true, message: "Berhasil disimpan", data: null });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
     }
@@ -154,7 +154,7 @@ async function update(req, res) {
                 .json({ ok: false, message: "Data tidak ditemukan" });
         }
 
-        return res.json({ ok: true, message: "Berhasil diupdate" });
+        return res.json({ ok: true, message: "Berhasil diupdate", data: null });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
     }
@@ -181,7 +181,7 @@ async function remove(req, res) {
                 .json({ ok: false, message: "Data tidak ditemukan" });
         }
 
-        return res.json({ ok: true, message: "Berhasil dihapus" });
+        return res.json({ ok: true, message: "Berhasil dihapus", data: null });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
     }

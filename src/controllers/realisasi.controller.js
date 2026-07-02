@@ -3,7 +3,7 @@ const Realisasi = require("../models/realisasi.model");
 async function jamOptions(req, res) {
     try {
         const data = await Realisasi.getJamOptions();
-        res.json({ ok: true, data });
+        res.json({ ok: true, message: "Opsi jam berhasil dimuat", data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -45,7 +45,7 @@ async function list(req, res) {
             kelompok: validKelompok,
         });
 
-        res.json({ ok: true, data });
+        res.json({ ok: true, message: "Data realisasi berhasil dimuat", data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -125,7 +125,7 @@ async function upsert(req, res) {
             user,
         });
 
-        res.json({ ok: true, message: "Realisasi tersimpan" });
+        res.json({ ok: true, message: "Realisasi tersimpan", data: null });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -145,7 +145,7 @@ async function remove(req, res) {
             spk,
         });
 
-        res.json({ ok: true, message: "Data dihapus" });
+        res.json({ ok: true, message: "Data dihapus", data: null });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }

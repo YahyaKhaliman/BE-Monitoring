@@ -22,10 +22,13 @@ async function laporan(req, res) {
 
         return res.json({
             ok: true,
-            summary,
-            by_date,
-            by_per_line,
-            by_spk,
+            message: "Laporan berhasil dimuat",
+            data: {
+                summary,
+                by_date,
+                by_per_line,
+                by_spk,
+            }
         });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });

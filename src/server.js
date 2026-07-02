@@ -52,10 +52,15 @@ const corsOrigins = (process.env.CORS_ORIGINS || "")
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+const isDev = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+
 const corsOptions = {
     origin(origin, callback) {
         // Allow requests with no origin (postman, curl, etc.)
         if (!origin) return callback(null, true);
+
+        // Allow all origins in development/debug mode
+        if (isDev) return callback(null, true);
 
         if (corsOrigins.includes(origin)) {
             return callback(null, true);
@@ -63,6 +68,7 @@ const corsOptions = {
 
         return callback(new Error("Not allowed by CORS"));
     },
+    credentials: true,
 };
 app.use(cors(corsOptions));
 

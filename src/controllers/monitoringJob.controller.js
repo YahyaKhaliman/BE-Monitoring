@@ -15,7 +15,7 @@ async function getLini(req, res) {
             cab,
             lini: lini || "JAHIT",
         });
-        res.json({ ok: true, data });
+        res.json({ ok: true, message: "Data lini berhasil dimuat", data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -37,7 +37,7 @@ async function getKelompok(req, res) {
             lini,
             kelompok,
         });
-        res.json({ ok: true, data });
+        res.json({ ok: true, message: "Data kelompok berhasil dimuat", data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -69,8 +69,11 @@ async function monitoringPerJam(req, res) {
 
         res.json({
             ok: true,
-            persen: persen,
-            data: rows,
+            message: "Data monitoring per jam berhasil dimuat",
+            data: {
+                persen: persen,
+                list: rows
+            }
         });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
@@ -95,7 +98,7 @@ async function monitoringDetail(req, res) {
             kelompok,
         });
 
-        res.json({ ok: true, data });
+        res.json({ ok: true, message: "Data monitoring detail berhasil dimuat", data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }

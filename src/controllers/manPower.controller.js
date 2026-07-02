@@ -33,7 +33,7 @@ async function list(req, res) {
             type: QueryTypes.SELECT,
         });
 
-        res.json({ ok: true, data });
+        res.json({ ok: true, message: "Data manpower berhasil dimuat", data });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -83,7 +83,7 @@ async function create(req, res) {
         user_create: user || null,
         });
 
-        res.json({ ok: true, message: "Berhasil disimpan" });
+        res.json({ ok: true, message: "Berhasil disimpan", data: null });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -113,7 +113,7 @@ async function update(req, res) {
         });
         }
 
-        res.json({ ok: true, message: "Berhasil diupdate" });
+        res.json({ ok: true, message: "Berhasil diupdate", data: null });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }
@@ -133,7 +133,7 @@ async function remove(req, res) {
         },
         });
 
-        res.json({ ok: true, message: "Berhasil dihapus" });
+        res.json({ ok: true, message: "Berhasil dihapus", data: null });
     } catch (e) {
         res.status(500).json({ ok: false, message: e.message });
     }

@@ -48,13 +48,16 @@ async function login(req, res) {
 
     return res.json({
         ok: true,
-        token: signAccessToken(user),
+        message: "Login berhasil",
         data: {
-            user_kode: user.user_kode,
-            user_nama: user.user_nama,
-            user_cab: user.user_cab,
-            user_bagian: user.user_bagian,
-            user_kelompok: user.user_kelompok,
+            token: signAccessToken(user),
+            user: {
+                user_kode: user.user_kode,
+                user_nama: user.user_nama,
+                user_cab: user.user_cab,
+                user_bagian: user.user_bagian,
+                user_kelompok: user.user_kelompok,
+            }
         },
     });
 }
@@ -102,7 +105,8 @@ async function changePassword(req, res) {
 
         return res.json({
             ok: true,
-            message: "Password Berhasil di ubah",
+            message: "Password berhasil diubah",
+            data: null,
         });
     } catch (e) {
         return res.status(500).json({ ok: false, message: e.message });
