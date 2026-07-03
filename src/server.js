@@ -52,7 +52,7 @@ const corsOrigins = (process.env.CORS_ORIGINS || "")
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-const isDev = process.env.NODE_ENV === "development" || !process.env.NODE_ENV;
+const isDev = process.env.NODE_ENV;
 
 const corsOptions = {
     origin(origin, callback) {
