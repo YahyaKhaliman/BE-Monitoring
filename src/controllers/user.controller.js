@@ -42,7 +42,7 @@ async function login(req, res) {
     if (!user) {
         return res.status(401).json({
             ok: false,
-            message: "Kode User atau Password salah",
+            message: "Username atau Password salah",
         });
     }
 
@@ -57,7 +57,7 @@ async function login(req, res) {
                 user_cab: user.user_cab,
                 user_bagian: user.user_bagian,
                 user_kelompok: user.user_kelompok,
-            }
+            },
         },
     });
 }
