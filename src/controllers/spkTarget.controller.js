@@ -1,5 +1,6 @@
 const { Lini } = require("../models/spkTarget.model");
 const { MonjobSpk, Spk } = require("../models/spkTarget.model");
+const { Op } = require("sequelize");
 
 // Cari SPK by nomor
 async function cariSpk(req, res) {
@@ -10,8 +11,14 @@ async function cariSpk(req, res) {
             .json({ ok: false, message: "Nomor SPK wajib diisi" });
     }
     try {
+        const searchVal = nomor.trim();
         const spk = await Spk.findOne({
-            where: { spk_nomor: nomor },
+            where: {
+                [Op.or]: [
+                    { spk_nomor: { [Op.like]: `%${searchVal}%` } },
+                    { spk_nama: { [Op.like]: `%${searchVal}%` } }
+                ]
+            },
             raw: true,
         });
         if (!spk) {

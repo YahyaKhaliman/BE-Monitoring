@@ -48,7 +48,14 @@ async function getMonitoringPerJam({ cab, tanggal, lini, kelompok }) {
         const sqlAll = `
             SELECT j.mj_jam jam,
                 IFNULL(SUM(r.mr_mp),0) mp,
-                IFNULL(GROUP_CONCAT(DISTINCT r.mr_spk_nomor ORDER BY r.mr_spk_nomor SEPARATOR ', '),'') spk,
+                IFNULL(
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT(IFNULL(r.mr_spk_nomor,''), '\\r\\n', IFNULL(s.spk_nama,''))
+                        ORDER BY r.mr_spk_nomor
+                        SEPARATOR ', '
+                    ),
+                    ''
+                ) spk,
                 IFNULL(SUM(r.mr_target),0) target,
                 IFNULL(SUM(r.mr_realisasi),0) realisasi,
                 IFNULL(ROUND(SUM(r.mr_realisasi) / NULLIF(SUM(r.mr_target),0) * 100, 2),0) persen
@@ -58,6 +65,7 @@ async function getMonitoringPerJam({ cab, tanggal, lini, kelompok }) {
                 AND r.mr_tanggal = :tanggal
                 AND r.mr_cab = :cab
                 AND r.mr_lini = :lini
+            LEFT JOIN tspk s ON s.spk_nomor = r.mr_spk_nomor
             GROUP BY j.mj_id, j.mj_jam
             ORDER BY j.mj_id
         `;
@@ -119,6 +127,7 @@ async function getMonitoringAvgPersen({ cab, tanggal, lini, kelompok }) {
 async function getMonitoringDetail({ cab, tanggal, lini, kelompok }) {
     const sql = `
             SELECT r.mr_spk_nomor spk,
+                        s.spk_nama,
                         s.spk_jumlah jmlspk,
                         SUM(r.mr_realisasi) jml,
                         COUNT(r.mr_spk_nomor) jam,
@@ -135,7 +144,7 @@ async function getMonitoringDetail({ cab, tanggal, lini, kelompok }) {
                 AND r.mr_cab = :cab
                 AND r.mr_lini = :lini
                 AND r.mr_kelompok = :kelompok
-            GROUP BY r.mr_spk_nomor
+            GROUP BY r.mr_spk_nomor, s.spk_nama, s.spk_jumlah
             ORDER BY r.mr_spk_nomor
         `;
 
